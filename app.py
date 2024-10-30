@@ -19,11 +19,11 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Retrieve input from form data
-    input_data = request.form.get('input')  # Fetch input from the form
-
-    # Check if the input is provided
-    if input_data is None:
+    # Get the 'input' from the form
+    input_data = request.form.get('input')  # Fetch input directly from form data
+    
+    # Check if input is provided
+    if not input_data:  # If input_data is None or empty
         return jsonify({"error": "No input provided"}), 400
 
     # Prepare request data for Azure AI prompt flow
@@ -41,7 +41,7 @@ def predict():
     req = urllib.request.Request(url, body, headers)
 
     try:
-        response = urllib.request.urlopen(req)  # Attempt to make the request to Azure
+        response = urllib.request.urlopen(req)  # Make the request to Azure
         result = response.read()
         
         # Parse and return the result
@@ -51,21 +51,13 @@ def predict():
         return jsonify({
             "error": "The request failed",
             "status_code": error.code,
-            "info": error.read().decode("utf-8", 'ignore')
+            "info": error.read().decode("utf-8")
         }), error.code
     except Exception as e:
         return jsonify({
             "error": "An error occurred during the request",
             "details": str(e)  # Provide detailed error message for debugging
         }), 500
-
-
-
-def log_error_details(error):
-    """Function to log error details to console for diagnostics."""
-    print(f"Error occurred: {str(error)}")
-    if hasattr(error, 'read'):
-        print(f"Error details: {error.read().decode('utf-8')}")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)  # Listen for requests
