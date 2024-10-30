@@ -4,6 +4,7 @@ import json
 import os
 import ssl
 
+
 app = Flask(__name__)
 
 def allowSelfSignedHttps(allowed):
