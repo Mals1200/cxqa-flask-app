@@ -4,46 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Prompt Flow</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        h1 { color: #333; }
-        form { margin-bottom: 20px; }
-        textarea { width: 100%; height: 100px; }
-        button { padding: 10px 15px; }
-    </style>
 </head>
 <body>
-    <h1>Ask Your Question</h1>
-    <form id="questionForm">
-        <textarea name="input" placeholder="Type your question here..." required></textarea><br>
-        <button type="submit">Submit</button>
+    <h1>Ask a Question</h1>
+    <form id="question-form">
+        <textarea name="input" rows="4" cols="50" placeholder="Type your question here..." required></textarea><br><br>
+        <input type="submit" value="Submit">
     </form>
+    <h2>Response:</h2>
+    <pre id="response"></pre>
     
-    <div id="response"></div>
-
     <script>
-        document.getElementById('questionForm').onsubmit = async function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const input = formData.get('input');
-            
-            const responseDiv = document.getElementById('response');
-            responseDiv.innerText = 'Loading...';
+        document.getElementById('question-form').onsubmit = async function(event) {
+            event.preventDefault(); // Prevent default form submission
+            const input = event.target.input.value;
+            const responseElement = document.getElementById('response');
 
-            const response = await fetch('/predict', {
+            const res = await fetch('/predict', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ input: input }),
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({input: input}) // Keep this as JSON for sending to Flask
             });
-
-            if (response.ok) {
-                const result = await response.json();
-                responseDiv.innerText = 'Response: ' + JSON.stringify(result);
-            } else {
-                const errorResult = await response.json();
-                responseDiv.innerText = 'Error: ' + errorResult.error;
-            }
-        }
+             
+            const data = await res.json();
+            responseElement.textContent = JSON.stringify(data, null, 2); // Display the response
+        };
     </script>
 </body>
 </html>
