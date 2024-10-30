@@ -4,7 +4,6 @@ import json
 import os
 import ssl
 
-
 app = Flask(__name__)
 
 def allowSelfSignedHttps(allowed):
@@ -20,13 +19,17 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        input_data = request.form.get('input')  # Fetching input directly from form data
+        # Fetching input directly from form data
+        input_data = request.form.get('input')
 
         if not input_data:
             return jsonify({"error": "No input provided"}), 400
 
-        # Prepare request data for Azure AI prompt flow
-        data = {'input': input_data}
+        # Prepare the input for the request
+        data = {
+            "question": input_data,
+            "chat_history": []  # You can modify this based on your application state
+        }
         body = json.dumps(data).encode('utf-8')  # Properly encode JSON data
 
         url = 'https://cxqa-genai-project-igysf.eastus.inference.ml.azure.com/score'  # Your Azure endpoint
@@ -34,15 +37,15 @@ def predict():
 
         headers = {
             'Content-Type': 'application/json',
-            'Ocp-Apim-Subscription-Key': api_key  # Correct header for API Key usage
+            'Authorization': 'Bearer ' + api_key  # Use Bearer token format for authorization
         }
 
         req = urllib.request.Request(url, body, headers)
-        
-        response = urllib.request.urlopen(req)  # Make the request
-        result = response.read()
 
-        return jsonify(json.loads(result)), 200  # Return the API response to the client
+        # Make the request to the Azure endpoint
+        with urllib.request.urlopen(req) as response:
+            result = response.read()
+            return jsonify(json.loads(result)), 200  # Return the API response to the client
 
     except urllib.error.HTTPError as error:
         error_message = error.read().decode("utf-8")  # Capture detailed error response from Azure
