@@ -19,29 +19,30 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    # Get the 'input' from the form
+    input_data = request.form.get('input')  # Fetching input directly from form data
+    
+    # Check if input is provided
+    if not input_data:
+        return jsonify({"error": "No input provided"}), 400
+
+    # Prepare request data for Azure AI prompt flow
+    data = {'input': input_data}  # Modify according to your expected input structure
+    body = json.dumps(data).encode('utf-8')  # Properly encode JSON data
+
+    # Define your Azure endpoint and API key
+    url = 'https://cxqa-genai-project-igysf.eastus.inference.ml.azure.com/score'  # Your Azure endpoint
+    api_key = 'GOukNWuYMiwzcHHos35MUIyHrrknWibM'  # Your actual API key (ensure you secure this!)
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Ocp-Apim-Subscription-Key': api_key  # Use the correct header for API key
+    }
+
+    req = urllib.request.Request(url, body, headers)
+
     try:
-        # Get the 'input' from the form
-        input_data = request.form.get('input')  # Fetch input directly from form data
-
-        # Check if input is provided
-        if input_data is None:
-            return jsonify({"error": "No input provided"}), 400
-
-        # Prepare request data for Azure AI prompt flow
-        data = {'input': input_data}  # Ensure the data structure matches what your Azure service expects
-        body = json.dumps(data).encode('utf-8')  # Properly encode JSON data
-
-        url = 'https://cxqa-genai-project-igysf.eastus.inference.ml.azure.com/score'  # Your Azure endpoint
-        api_key = 'GOukNWuYMiwzcHHos35MUIyHrrknWibM'  # Using the primary API key
-
-        headers = {
-            'Content-Type': 'application/json',
-            'Ocp-Apim-Subscription-Key': api_key  # Use the correct header for Azure APIs
-        }
-
-        req = urllib.request.Request(url, body, headers)
-
-        response = urllib.request.urlopen(req)  # Attempt to make the request
+        response = urllib.request.urlopen(req)  # Attempt to make the request to Azure
         result = response.read()
         
         # Parse and return the result
@@ -53,6 +54,7 @@ def predict():
             "status_code": error.code,
             "info": error.read().decode("utf-8")
         }), error.code
+    
     except Exception as e:
         return jsonify({
             "error": "An error occurred during the request",
@@ -60,4 +62,4 @@ def predict():
         }), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)  # Listen for requests
+    app.run(host='0.0.0.0', port=5000)  # Run the Flask app
