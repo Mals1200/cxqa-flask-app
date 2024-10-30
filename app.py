@@ -23,16 +23,16 @@ def predict():
         # Get the 'input' from the form
         input_data = request.form.get('input')  # Fetching input directly from form data
 
-        # Check if the input is provided
-        if input_data is None or len(input_data.strip()) == 0:
+        # Check if input is provided
+        if not input_data:
             return jsonify({"error": "No input provided"}), 400
-        
+
         # Prepare request data for Azure AI prompt flow
-        data = {'input': input_data}
+        data = {'input': input_data}  # Modify according to your expected input structure
         body = json.dumps(data).encode('utf-8')  # Properly encode JSON data
 
         # Define your Azure endpoint and API key
-        url = 'https://cxqa-genai-project-igysf.eastus.inference.ml.azure.com/score'
+        url = 'https://cxqa-genai-project-igysf.eastus.inference.ml.azure.com/score'  # Your Azure endpoint
         api_key = 'GOukNWuYMiwzcHHos35MUIyHrrknWibM'  # Your Azure API key
 
         headers = {
@@ -42,6 +42,7 @@ def predict():
 
         # Send the request to Azure
         req = urllib.request.Request(url, body, headers)
+        
         response = urllib.request.urlopen(req)  # Attempt to make the request
         result = response.read()
         
@@ -49,8 +50,8 @@ def predict():
         return jsonify(json.loads(result)), 200  # Return the API response to the client
 
     except urllib.error.HTTPError as error:
-        # Log the error response from Azure
-        error_message = error.read().decode("utf-8")
+        # Capture detailed error response from Azure
+        error_message = error.read().decode("utf-8")  # Read the response body of the error
         print(f"HTTPError: {error.code} - {error_message}")  # Log to stdout for Azure logs
         return jsonify({
             "error": "The request failed",
@@ -59,8 +60,8 @@ def predict():
         }), error.code
     
     except Exception as e:
-        # Log the full error details for diagnosis
-        print(f"Error: {str(e)}")  # Log to stdout for Azure logs
+        # Log unexpected errors
+        print(f"An error occurred: {str(e)}")  # Log for debugging
         return jsonify({
             "error": "An internal server error occurred",
             "details": str(e)  # Provide detailed error message for debugging
