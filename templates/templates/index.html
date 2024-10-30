@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Prompt Flow</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        h1 { color: #333; }
+        form { margin-bottom: 20px; }
+        textarea { width: 100%; height: 100px; }
+        button { padding: 10px 15px; }
+    </style>
+</head>
+<body>
+    <h1>Ask Your Question</h1>
+    <form id="questionForm">
+        <textarea name="input" placeholder="Type your question here..." required></textarea><br>
+        <button type="submit">Submit</button>
+    </form>
+    
+    <div id="response"></div>
+
+    <script>
+        document.getElementById('questionForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const input = formData.get('input');
+            
+            const responseDiv = document.getElementById('response');
+            responseDiv.innerText = 'Loading...';
+
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ input: input }),
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                responseDiv.innerText = 'Response: ' + JSON.stringify(result);
+            } else {
+                const errorResult = await response.json();
+                responseDiv.innerText = 'Error: ' + errorResult.error;
+            }
+        }
+    </script>
+</body>
+</html>
