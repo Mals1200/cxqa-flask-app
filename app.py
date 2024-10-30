@@ -19,11 +19,11 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Get the 'input' from the JSON request
-    input_data = request.form.get('input')  # Retrieve input from the form
-    
-    # Check if input is provided
-    if input_data is None or input_data == "":
+    # Retrieve input from form data
+    input_data = request.form.get('input')  # Fetch input from the form
+
+    # Check if the input is provided
+    if input_data is None:
         return jsonify({"error": "No input provided"}), 400
 
     # Prepare request data for Azure AI prompt flow
@@ -31,37 +31,34 @@ def predict():
     body = json.dumps(data).encode('utf-8')  # Properly encode JSON data
 
     url = 'https://cxqa-genai-project-igysf.eastus.inference.ml.azure.com/score'  # Your Azure endpoint
-    api_key = 'GOukNWuYMiwzcHHos35MUIyHrrknWibM'  # Use your actual API key
+    api_key = 'GOukNWuYMiwzcHHos35MUIyHrrknWibM'  # Your actual API key
 
     headers = {
         'Content-Type': 'application/json',
-        'Ocp-Apim-Subscription-Key': api_key  # Use API key for Azure API authentication
+        'Ocp-Apim-Subscription-Key': api_key  # Use the correct header for Azure APIs
     }
 
     req = urllib.request.Request(url, body, headers)
 
     try:
         response = urllib.request.urlopen(req)  # Attempt to make the request to Azure
-        result = response.read()  # Read the response
+        result = response.read()
         
         # Parse and return the result
-        return jsonify(json.loads(result)), 200  # Serve the API response to the client
+        return jsonify(json.loads(result)), 200  # Return the API response to the client
 
     except urllib.error.HTTPError as error:
-        # Log HTTP errors
-        log_error_details(error)  # Call the logging function
         return jsonify({
             "error": "The request failed",
             "status_code": error.code,
-            "info": error.read().decode("utf-8")
+            "info": error.read().decode("utf-8", 'ignore')
         }), error.code
     except Exception as e:
-        # Handle and log all other exceptions
-        log_error_details(e)
         return jsonify({
             "error": "An error occurred during the request",
-            "details": str(e)  # Detailed error message for debugging
+            "details": str(e)  # Provide detailed error message for debugging
         }), 500
+
 
 
 def log_error_details(error):
