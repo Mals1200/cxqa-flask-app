@@ -3,7 +3,7 @@ name: Deploy to Azure Web App
 on:
   push:
     branches:
-     - main  # Deploy on pushes to the main branch
+      - main  # Deploy on pushes to the main branch
 
 jobs:
   build-and-deploy:
@@ -30,6 +30,5 @@ jobs:
     - name: Deploy to Azure Web App
       uses: Azure/webapps-deploy@v2
       with:
-        app-name: cxqa-app  # Your Azure App Service name
-        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}  # The GitHub secret
-        package: my-flask-app.zip
+        app-name: cxqa-webapp  # Ensure this matches your Azure App Service name exactly
+        package: my-flask-app.zip  # No need for publish-profile since using GitHub Actions
