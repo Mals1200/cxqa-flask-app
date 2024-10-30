@@ -27,8 +27,13 @@ jobs:
       run: |
         zip -r my-flask-app.zip .  # Create a zip of the contents of the repository
 
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}  # Set this in GitHub Secrets
+
     - name: Deploy to Azure Web App
       uses: Azure/webapps-deploy@v2
       with:
         app-name: cxqa-webapp  # Ensure this matches your Azure App Service name exactly
-        package: my-flask-app.zip  # No need for publish-profile since using GitHub Actions
+        package: my-flask-app.zip
