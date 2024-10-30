@@ -16,7 +16,32 @@
 
     <script>
         document.getElementById('question-form').onsubmit = async function(event) {
-            event.preventDefault(); // Prevent default form submission
+            event.preventDefault(); // Prevent the default form submission
             const input = event.target.input.value; // Get the input from the form
             const responseElement = document.getElementById('response');
-            responseElement.textContent = "Loading...
+            responseElement.textContent = "Loading..."; // Show loading while processing
+
+            try {
+                const res = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'  // Correct content type for form submissions
+                    },
+                    body: new URLSearchParams({ input: input })  // Encode the form data
+                });
+
+                // Check if response is OK
+                if (!res.ok) { 
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+
+                const data = await res.json(); // Get the JSON data
+                responseElement.textContent = JSON.stringify(data, null, 2); // Display the result
+            } catch (error) {
+                console.error('Error occurred while fetching:', error); // Log error to console
+                responseElement.textContent = `Error: ${error.message}`; // Display error message
+            }
+        };
+    </script>
+</body>
+</html>
