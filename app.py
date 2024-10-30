@@ -19,29 +19,28 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Get the 'input' from the form
-    input_data = request.form.get('input')  # Getting input from the form
-    
-    # Check if the input is provided
-    if input_data is None:
-        return jsonify({"error": "No input provided"}), 400
-
-    # Prepare request data for Azure AI prompt flow
-    data = {'input': input_data}
-    body = json.dumps(data).encode('utf-8')  # Properly encode JSON data
-
-    # Define your Azure endpoint and key
-    url = 'https://cxqa-genai-project-igysf.eastus.inference.ml.azure.com/score' 
-    api_key = 'GOukNWuYMiwzcHHos35MUIyHrrknWibM'  # Use only one key
-
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + api_key  # Adjust as needed; verify if "Bearer" is required
-    }
-
-    req = urllib.request.Request(url, body, headers)
-
     try:
+        # Get the 'input' from the JSON request
+        input_data = request.json.get('input', None)  # This retrieves input from the form in index.html
+
+        # Check if the input is provided
+        if input_data is None:
+            return jsonify({"error": "No input provided"}), 400
+
+        # Prepare request data for Azure AI prompt flow
+        data = {'input': input_data}
+        body = json.dumps(data).encode('utf-8')  # Properly encode JSON data
+
+        url = 'https://cxqa-genai-project-igysf.eastus.inference.ml.azure.com/score'  # Your Azure endpoint
+        api_key = 'GOukNWuYMiwzcHHos35MUIyHrrknWibM'  # API key
+
+        headers = {
+            'Content-Type': 'application/json',
+            'Ocp-Apim-Subscription-Key': api_key  # Use this format for Azure API keys
+        }
+
+        req = urllib.request.Request(url, body, headers)
+
         response = urllib.request.urlopen(req)  # Attempt to make the request to Azure
         result = response.read()
         
@@ -49,15 +48,19 @@ def predict():
         return jsonify(json.loads(result)), 200  # Return the API response to the client
 
     except urllib.error.HTTPError as error:
+        # Log more information about the error
+        print(f"HTTPError: {error.code} - {error.read().decode('utf-8')}")
         return jsonify({
             "error": "The request failed",
             "status_code": error.code,
-            "info": error.read().decode("utf-8", 'ignore')
+            "info": error.read().decode("utf-8")
         }), error.code
     except Exception as e:
+        # Catch all other exceptions
+        print(f"Internal Server Error: {str(e)}")  # Log the error message
         return jsonify({
             "error": "An error occurred during the request",
-            "details": str(e)  # Provide detailed error message for debugging
+            "details": str(e)  # Provide error details for debugging
         }), 500
 
 if __name__ == '__main__':
