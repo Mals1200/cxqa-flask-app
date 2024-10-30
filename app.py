@@ -7,10 +7,11 @@ import ssl
 app = Flask(__name__)
 
 def allowSelfSignedHttps(allowed):
+    # Bypass the server certificate verification on client side
     if allowed and not os.environ.get('PYTHONHTTPSVERIFY', '') and getattr(ssl, '_create_unverified_context', None):
         ssl._create_default_https_context = ssl._create_unverified_context
 
-allowSelfSignedHttps(True)
+allowSelfSignedHttps(True)  # Needed if you use a self-signed certificate in your scoring service.
 
 @app.route('/')
 def home():
@@ -23,7 +24,7 @@ def predict():
         input_data = request.form.get('input')  # Fetching input directly from form data
 
         # Check if the input is provided
-        if input_data is None or len(input_data) == 0:
+        if input_data is None or len(input_data.strip()) == 0:
             return jsonify({"error": "No input provided"}), 400
         
         # Prepare request data for Azure AI prompt flow
@@ -49,8 +50,21 @@ def predict():
 
     except urllib.error.HTTPError as error:
         # Log the error response from Azure
+        error_message = error.read().decode("utf-8")
+        print(f"HTTPError: {error.code} - {error_message}")  # Log to stdout for Azure logs
         return jsonify({
             "error": "The request failed",
             "status_code": error.code,
-            "info": error.read().decode("utf-8")
-        }), error
+            "info": error_message
+        }), error.code
+    
+    except Exception as e:
+        # Log the full error details for diagnosis
+        print(f"Error: {str(e)}")  # Log to stdout for Azure logs
+        return jsonify({
+            "error": "An internal server error occurred",
+            "details": str(e)  # Provide detailed error message for debugging
+        }), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)  # Listen for requests
