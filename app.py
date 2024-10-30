@@ -11,7 +11,7 @@ def allowSelfSignedHttps(allowed):
     if allowed and not os.environ.get('PYTHONHTTPSVERIFY', '') and getattr(ssl, '_create_unverified_context', None):
         ssl._create_default_https_context = ssl._create_unverified_context
 
-allowSelfSignedHttps(True)  # Needed if you use self-signed certificate in your scoring service.
+allowSelfSignedHttps(True)  # Needed if you use a self-signed certificate in your scoring service.
 
 @app.route('/')
 def home():
@@ -20,7 +20,7 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     # Get the 'input' from the form
-    input_data = request.json.get('input', None)  # Ensure you fetch in JSON format
+    input_data = request.form.get('input')  # Getting input from the form
     
     # Check if the input is provided
     if input_data is None:
@@ -30,18 +30,19 @@ def predict():
     data = {'input': input_data}
     body = json.dumps(data).encode('utf-8')  # Properly encode JSON data
 
-    url = 'https://cxqa-genai-project-igysf.eastus.inference.ml.azure.com/score'  # Your Azure endpoint
-    api_key = 'GOukNWuYMiwzcHHos35MUIyHrrknWibM'  # Your actual Azure API key
+    # Define your Azure endpoint and key
+    url = 'https://cxqa-genai-project-igysf.eastus.inference.ml.azure.com/score' 
+    api_key = 'GOukNWuYMiwzcHHos35MUIyHrrknWibM'  # Use only one key
 
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + api_key
+        'Authorization': 'Bearer ' + api_key  # Adjust as needed; verify if "Bearer" is required
     }
 
     req = urllib.request.Request(url, body, headers)
 
     try:
-        response = urllib.request.urlopen(req)
+        response = urllib.request.urlopen(req)  # Attempt to make the request to Azure
         result = response.read()
         
         # Parse and return the result
